@@ -11,8 +11,17 @@ import (
 // in the driver.
 type IterDriveFn func(ctx context.Context, key string, cid cid.Cid, size int64, owner string) error
 
+// ListResult denotes the listing driver result.
+type ListResult struct {
+	Key   string
+	Cid   cid.Cid
+	Size  int64
+	Owner string
+}
+
 // Driver acts as a cloud drive and provides common cloud drive APIs.
 type Driver interface {
+	List(ctx context.Context) ([]ListResult, error)
 
 	// Iter iterates all available files in this driver. If error occurs while
 	// iterating, the whole process will halt and return the iterating error

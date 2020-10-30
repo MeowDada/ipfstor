@@ -23,6 +23,8 @@ import (
 var (
 	defaultDBPath = filepath.Join(os.Getenv("HOME"), ".orbitdb")
 
+	defaultListWorkers = 4
+
 	// ErrNoSuchKey raised when the key does not present.
 	ErrNoSuchKey = errors.New("no such key")
 )
@@ -64,6 +66,23 @@ type drive struct {
 	kv  iface.KeyValueStore
 
 	codec codec.Instance
+}
+
+// List returns a result list consist of listed objects.
+func (d *drive) List(ctx context.Context) ([]ListResult, error) {
+	var lrs []ListResult
+
+	maps := d.kv.All()
+	for k, v := range maps {
+		meta := d.mustDecodeMetadata(v)
+		lrs = append(lrs, ListResult{
+			Key:   k,
+			Cid:   meta.Cid,
+			Size:  meta.Size,
+			Owner: meta.Owner,
+		})
+	}
+	return lrs, nil
 }
 
 // Iter iterates all available objects in the driver.
