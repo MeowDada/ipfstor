@@ -21,6 +21,7 @@ type ListResult struct {
 
 // Driver acts as a cloud drive and provides common cloud drive APIs.
 type Driver interface {
+	// List returns a result consist of all existing objects in the driver.
 	List(ctx context.Context) ([]ListResult, error)
 
 	// Iter iterates all available files in this driver. If error occurs while
