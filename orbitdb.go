@@ -68,6 +68,10 @@ type drive struct {
 	codec codec.Instance
 }
 
+func (d *drive) Address() string {
+	return d.kv.Address().String()
+}
+
 // List returns a result list consist of listed objects.
 func (d *drive) List(ctx context.Context) ([]ListResult, error) {
 	var lrs []ListResult

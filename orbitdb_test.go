@@ -21,6 +21,9 @@ func TestGet(t *testing.T) {
 	}
 	defer driver.Close(ctx)
 
+	addr := driver.Address()
+	t.Log(addr)
+
 	_, err = driver.Get(ctx, "12512")
 	if err != nil {
 		t.Error(err)

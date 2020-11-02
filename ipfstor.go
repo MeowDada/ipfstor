@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/ipfs/go-cid"
+	"github.com/ipfs/interface-go-ipfs-core/path"
 )
 
 // IterDriveFn is a callback function that applys to each iterated file
@@ -19,8 +20,23 @@ type ListResult struct {
 	Owner string
 }
 
+// User represents an IPFS user.
+type User interface {
+	// GenerateKeyFile generates new keys for builing a private IPFS netowrk.
+	// If the target file exists, it will be overwrites by a new create one.
+	GenerateKeyFile(ctx context.Context, path string) error
+
+	// Key represents the key of the user.
+	Key(ctx context.Context) (path.Path, error)
+
+	AddPeer(ctx context.Context, addr string) error
+}
+
 // Driver acts as a cloud drive and provides common cloud drive APIs.
 type Driver interface {
+	// Address returns the ipfs path of this driver.
+	Address() string
+
 	// List returns a result consist of all existing objects in the driver.
 	List(ctx context.Context) ([]ListResult, error)
 
