@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/ipfs/go-cid"
-	"github.com/ipfs/interface-go-ipfs-core/path"
+	"github.com/libp2p/go-libp2p-core/peer"
 )
 
 // IterDriveFn is a callback function that applys to each iterated file
@@ -20,6 +20,11 @@ type ListResult struct {
 	Owner string
 }
 
+// PeerInfo denotes the infomation about each connected peers.
+type PeerInfo struct {
+	ID peer.ID
+}
+
 // User represents an IPFS user.
 type User interface {
 	// GenerateKeyFile generates new keys for builing a private IPFS netowrk.
@@ -27,9 +32,16 @@ type User interface {
 	GenerateKeyFile(ctx context.Context, path string) error
 
 	// Key represents the key of the user.
-	Key(ctx context.Context) (path.Path, error)
+	Key(ctx context.Context) (string, error)
 
+	// AddPeer to the bootstrap list.
+	//
+	// The address of a peer might look as below:
+	// /ip4/172.16.0.113/tcp/4001/ipfs/QmV7Thb3mjuWa1xDK5UrgtG7SSYFt4PSyvo6CjcnA5gZAg
 	AddPeer(ctx context.Context, addr string) error
+
+	// GetPeers gets the connected peers of this user.
+	GetPeers(ctx context.Context) ([]PeerInfo, error)
 }
 
 // Driver acts as a cloud drive and provides common cloud drive APIs.

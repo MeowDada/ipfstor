@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 
 	coreiface "github.com/ipfs/interface-go-ipfs-core"
-	"github.com/ipfs/interface-go-ipfs-core/path"
 )
 
 // NewUser creates an instance of User.
@@ -51,12 +51,20 @@ func (u *user) GenerateKeyFile(ctx context.Context, path string) error {
 	return err
 }
 
-func (u *user) Key(ctx context.Context) (path.Path, error) {
+func (u *user) Key(ctx context.Context) (string, error) {
+	mas, err := u.api.Swarm().ListenAddrs(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	base := mas[0]
+
 	k, err := u.api.Key().Self(ctx)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return k.Path(), nil
+
+	return filepath.Join(base.String(), k.Path().String()), nil
 }
 
 func (u *user) AddPeer(ctx context.Context, addr string) error {
@@ -74,7 +82,6 @@ func (u *user) AddPeer(ctx context.Context, addr string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(req.URL)
 
 	clnt := http.Client{}
 	resp, err := clnt.Do(req)
@@ -86,10 +93,24 @@ func (u *user) AddPeer(ctx context.Context, addr string) error {
 	if err != nil {
 		return err
 	}
-
 	fmt.Println(string(msg))
 
 	return nil
+}
+
+func (u *user) GetPeers(ctx context.Context) (ps []PeerInfo, err error) {
+	infos, err := u.api.Swarm().Peers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, info := range infos {
+		ps = append(ps, PeerInfo{
+			ID: info.ID(),
+		})
+	}
+
+	return ps, nil
 }
 
 func generateSwarmKey() ([]byte, error) {
