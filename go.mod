@@ -9,4 +9,5 @@ require (
 	github.com/ipfs/go-ipfs-http-client v0.1.0
 	github.com/ipfs/interface-go-ipfs-core v0.4.0
 	github.com/libp2p/go-libp2p-core v0.6.1
+	github.com/multiformats/go-multiaddr v0.3.0
 )
