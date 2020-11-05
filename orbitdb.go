@@ -29,6 +29,37 @@ var (
 	ErrNoSuchKey = errors.New("no such key")
 )
 
+// OpenDrive opens an existing drive.
+func OpenDrive(ctx context.Context, api coreiface.CoreAPI, name string) (Driver, error) {
+	db, err := orbitdb.NewOrbitDB(ctx, api, &baseorbitdb.NewOrbitDBOptions{
+		Directory: &defaultDBPath,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	kv, err := db.KeyValue(ctx, name, &iface.CreateDBOptions{
+		Create: boolPtr(false),
+	})
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	// Load snapshot from local storage. If there is no existing snapshot, an
+	// error message will be print out instead of crashing the program.
+	if err := kv.LoadFromSnapshot(ctx); err != nil {
+		fmt.Println(err)
+	}
+
+	return &drive{
+		api:   api,
+		db:    db,
+		kv:    kv,
+		codec: codec.Gob{},
+	}, nil
+}
+
 // NewDriver creates an instance of Driver.
 func NewDriver(ctx context.Context, api coreiface.CoreAPI, name string) (Driver, error) {
 	db, err := orbitdb.NewOrbitDB(ctx, api, &baseorbitdb.NewOrbitDBOptions{
@@ -215,4 +246,8 @@ func (d *drive) getMetaByKey(ctx context.Context, key string) (object.Metadata, 
 		return object.Metadata{}, ErrNoSuchKey
 	}
 	return d.mustDecodeMetadata(data), nil
+}
+
+func boolPtr(flag bool) *bool {
+	return &flag
 }
