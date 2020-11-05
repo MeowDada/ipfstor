@@ -27,7 +27,7 @@ const (
 	// NetworkUDP uses udp.
 	NetworkUDP = "udp"
 )
-.,0n	 
+
 var (
 	// DefaultAPIAddress denotes the default api address.
 	DefaultAPIAddress = APIAddr{
@@ -64,4 +64,23 @@ func NewLocalAPI(addr APIAddr) (coreiface.CoreAPI, error) {
 		return nil, err
 	}
 	return ipfsClient.NewApi(ma)
+}
+
+// GetLocalAPI fetches all ipfs instances from given APIs.
+func GetLocalAPI(addrs []APIAddr) (apis []coreiface.CoreAPI, err error) {
+	for i := range addrs {
+		ma, err := multiaddr.NewMultiaddr(addrs[i].String())
+		if err != nil {
+			return nil, err
+		}
+
+		api, err := ipfsClient.NewApi(ma)
+		if err != nil {
+			return nil, err
+		}
+
+		apis = append(apis, api)
+	}
+
+	return apis, nil
 }
