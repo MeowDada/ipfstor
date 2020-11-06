@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	orbitdb "berty.tech/go-orbit-db"
+	"berty.tech/go-orbit-db/address"
 	"berty.tech/go-orbit-db/baseorbitdb"
 	"berty.tech/go-orbit-db/iface"
 	"berty.tech/go-orbit-db/stores/basestore"
@@ -36,6 +37,15 @@ func OpenDrive(ctx context.Context, api coreiface.CoreAPI, name string) (Driver,
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	// If the address is a human readable name.
+	if err := address.IsValid(name); err != nil {
+		addr, err := db.DetermineAddress(ctx, name, "keyvalue", &iface.DetermineAddressOptions{})
+		if err != nil {
+			return nil, err
+		}
+		name = addr.String()
 	}
 
 	store, err := db.Open(ctx, name, &iface.CreateDBOptions{
