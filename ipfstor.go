@@ -58,7 +58,7 @@ type Driver interface {
 	Iter(ctx context.Context, iterCb IterDriveFn) error
 
 	// Add adds a file to the driver with given key.
-	Add(ctx context.Context, key string, reader io.Reader) error
+	Add(ctx context.Context, key, path string) error
 
 	// Get gets a file from the driver by reading from the returned stream reader.
 	Get(ctx context.Context, key string) (io.ReadCloser, error)

@@ -49,10 +49,14 @@ func OpenDrive(ctx context.Context, api coreiface.CoreAPI, name string) (Driver,
 	}
 
 	store, err := db.Open(ctx, name, &iface.CreateDBOptions{
-		Create: boolPtr(false),
+		Directory: &defaultDBPath,
+		Create:    boolPtr(false),
+		Overwrite: boolPtr(false),
+		StoreType: stringPtr("keyvalue"),
 	})
 	if err != nil {
 		db.Close()
+		fmt.Println(err)
 		return nil, err
 	}
 
@@ -159,23 +163,30 @@ func (d *drive) Iter(ctx context.Context, iterCb IterDriveFn) error {
 //
 // It will first put the file to IPFS then update the
 // key value store.
-func (d *drive) Add(ctx context.Context, key string, reader io.Reader) error {
-	f := files.NewReaderFile(reader)
+func (d *drive) Add(ctx context.Context, key, path string) error {
 	unixfs := d.api.Unixfs()
 
-	resolved, err := unixfs.Add(ctx, f)
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	info, err := f.Stat()
 	if err != nil {
 		return err
 	}
 
-	size, err := f.Size()
+	node := files.NewReaderStatFile(f, info)
+
+	r, err := unixfs.Add(ctx, node)
 	if err != nil {
 		return err
 	}
 
 	val := d.mustEncode(object.Metadata{
-		Cid:   resolved.Cid(),
-		Size:  size,
+		Cid:   r.Cid(),
+		Size:  info.Size(),
 		Owner: d.db.Identity().ID,
 	})
 
@@ -266,4 +277,8 @@ func (d *drive) getMetaByKey(ctx context.Context, key string) (object.Metadata, 
 
 func boolPtr(flag bool) *bool {
 	return &flag
+}
+
+func stringPtr(str string) *string {
+	return &str
 }
