@@ -38,12 +38,18 @@ func OpenDrive(ctx context.Context, api coreiface.CoreAPI, name string) (Driver,
 		return nil, err
 	}
 
-	kv, err := db.KeyValue(ctx, name, &iface.CreateDBOptions{
+	store, err := db.Open(ctx, name, &iface.CreateDBOptions{
 		Create: boolPtr(false),
 	})
 	if err != nil {
 		db.Close()
 		return nil, err
+	}
+
+	kv, ok := store.(iface.KeyValueStore)
+	if !ok {
+		db.Close()
+		return nil, fmt.Errorf("invalid database type")
 	}
 
 	// Load snapshot from local storage. If there is no existing snapshot, an
