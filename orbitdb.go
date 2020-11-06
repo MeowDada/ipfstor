@@ -16,6 +16,7 @@ import (
 	"berty.tech/go-orbit-db/stores/basestore"
 	files "github.com/ipfs/go-ipfs-files"
 	coreiface "github.com/ipfs/interface-go-ipfs-core"
+	"github.com/ipfs/interface-go-ipfs-core/options"
 	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/meowdada/ipfstor/pkg/codec"
 	"github.com/meowdada/ipfstor/pkg/object"
@@ -179,7 +180,7 @@ func (d *drive) Add(ctx context.Context, key, path string) error {
 
 	node := files.NewReaderStatFile(f, info)
 
-	r, err := unixfs.Add(ctx, node)
+	r, err := unixfs.Add(ctx, node, options.Unixfs.Pin(true))
 	if err != nil {
 		return err
 	}
@@ -227,7 +228,7 @@ func (d *drive) Remove(ctx context.Context, key string) error {
 	p := path.IpfsPath(meta.Cid)
 
 	// Unpin the data.
-	if err := d.api.Pin().Rm(ctx, p); err != nil {
+	if err := d.api.Pin().Rm(ctx, p, options.Pin.RmRecursive(true)); err != nil {
 		return err
 	}
 
