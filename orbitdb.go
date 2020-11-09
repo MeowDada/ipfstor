@@ -69,9 +69,7 @@ func OpenDrive(ctx context.Context, api coreiface.CoreAPI, name string) (Driver,
 
 	// Load snapshot from local storage. If there is no existing snapshot, an
 	// error message will be print out instead of crashing the program.
-	if err := kv.LoadFromSnapshot(ctx); err != nil {
-		fmt.Println(err)
-	}
+	_ = kv.LoadFromSnapshot(ctx)
 
 	return &drive{
 		api:   api,
