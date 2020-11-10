@@ -124,7 +124,7 @@ func (d *drive) Remove(ctx context.Context, key string) error {
 
 func (d *drive) Close(ctx context.Context) error {
 	// Save snapshopt.
-	cid, err := basestore.SaveSnapshot(ctx, d.kv)
+	_, err := basestore.SaveSnapshot(ctx, d.kv)
 	if err != nil {
 		return err
 	}
