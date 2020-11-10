@@ -10,4 +10,5 @@ require (
 	github.com/ipfs/interface-go-ipfs-core v0.4.0
 	github.com/multiformats/go-multiaddr v0.3.1
 	github.com/pkg/errors v0.9.1
+	go.uber.org/zap v1.15.0
 )

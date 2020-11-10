@@ -139,6 +139,7 @@ func newOrbitDB(ctx context.Context, api coreiface.CoreAPI, opts ...*options.Ope
 	opt := options.MergeOpenDriveOptions(opts...)
 	return orbitdb.NewOrbitDB(ctx, api, &baseorbitdb.NewOrbitDBOptions{
 		Directory: opt.Directory,
+		Logger:    opt.Logger,
 	})
 }
 
@@ -146,7 +147,10 @@ func openKeyValueStore(ctx context.Context, db orbitdb.OrbitDB, dbAddr string, o
 	opt := options.MergeOpenDriveOptions(opts...)
 	store, err := db.Open(ctx, dbAddr, &iface.CreateDBOptions{
 		Directory: opt.Directory,
+		Overwrite: boolPtr(false),
 		Create:    boolPtr(false),
+		StoreType: strPtr(keyvalueStoreType),
+		Replicate: boolPtr(true),
 	})
 	if err != nil {
 		return nil, err

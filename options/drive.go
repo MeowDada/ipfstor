@@ -1,15 +1,23 @@
 package options
 
+import "go.uber.org/zap"
+
 // OpenDriveOptions configures behaviour while opening a drive.
 type OpenDriveOptions struct {
 	Directory *string
+	Logger    *zap.Logger
 }
 
-// Directory sets the Directory field of the OpenDriveOptions.
+// SetDirectory sets the Directory field of the OpenDriveOptions.
 func (o *OpenDriveOptions) SetDirectory(dir string) *OpenDriveOptions {
-	return &OpenDriveOptions{
-		Directory: &dir,
-	}
+	o.Directory = &dir
+	return o
+}
+
+// SetLogger sets the Logger field of the OpenDriveOptions.
+func (o *OpenDriveOptions) SetLogger(logger *zap.Logger) *OpenDriveOptions {
+	o.Logger = logger
+	return o
 }
 
 // OpenDrive creates a new OpenDriveOptions instance.
@@ -28,6 +36,9 @@ func MergeOpenDriveOptions(opts ...*OpenDriveOptions) *OpenDriveOptions {
 		}
 		if opt.Directory != nil {
 			o.Directory = opt.Directory
+		}
+		if opt.Logger != nil {
+			o.Logger = opt.Logger
 		}
 	}
 
