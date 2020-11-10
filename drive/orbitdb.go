@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 
@@ -129,8 +128,6 @@ func (d *drive) Close(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	log.Printf("save snapshot as %s\n", cid)
 
 	if err := d.kv.Close(); err != nil {
 		return err
