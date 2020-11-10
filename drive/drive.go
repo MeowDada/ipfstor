@@ -112,6 +112,9 @@ func Open(ctx context.Context, api coreiface.CoreAPI, resolve string, opts ...*o
 	// there is no snapshot.
 	kv.LoadFromSnapshot(ctx)
 
+	// Try loading local cache.
+	kv.Load(ctx, 0)
+
 	return newDrive(api, db, kv)
 }
 
