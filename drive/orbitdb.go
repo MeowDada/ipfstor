@@ -145,8 +145,9 @@ func (d *drive) Close(ctx context.Context) error {
 
 func newDrive(api coreiface.CoreAPI, db iface.OrbitDB, kv iface.KeyValueStore) (*drive, error) {
 	return &drive{
-		db: db,
-		kv: kv,
+		api: api,
+		db:  db,
+		kv:  kv,
 	}, nil
 }
 

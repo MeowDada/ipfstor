@@ -56,6 +56,11 @@ type ListResult struct {
 	files []File
 }
 
+// Files returns all list results.
+func (lr *ListResult) Files() []File {
+	return lr.files
+}
+
 // File denotes the metadata of a file which is stored in a drive instance.
 type File struct {
 	Key  string
