@@ -2,11 +2,9 @@ package drive
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	orbitdb "berty.tech/go-orbit-db"
-	"berty.tech/go-orbit-db/address"
 	"berty.tech/go-orbit-db/baseorbitdb"
 	"berty.tech/go-orbit-db/iface"
 	"github.com/ipfs/go-cid"
@@ -92,7 +90,7 @@ func DirectOpen(resolve string, opts ...*options.OpenDriveOptions) (Instance, er
 //
 // Open will not create an new instance if the drive does not present.
 // The resovle could be a human readable name (available only if once
-// present at local) or a remote addres.
+// present at local) or a remote address.
 func Open(ctx context.Context, api coreiface.CoreAPI, resolve string, opts ...*options.OpenDriveOptions) (Instance, error) {
 	if len(resolve) == 0 {
 		return nil, errors.New("resolve name could not be empty")
@@ -106,45 +104,22 @@ func Open(ctx context.Context, api coreiface.CoreAPI, resolve string, opts ...*o
 		return nil, err
 	}
 
-	dbAddr, err := resolveName(ctx, db, resolve)
+	kv, err := openKeyValueStore(ctx, db, resolve, opts...)
 	if err != nil {
 		db.Close()
 		return nil, err
-	}
-
-	kv, err := openKeyValueStore(ctx, db, dbAddr, opts...)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-
-	// Try loading snapshot from the specific directory. Do nothing if
-	// there is no snapshot.
-	kv.LoadFromSnapshot(ctx)
-
-	//
-	if err := kv.Load(ctx, -1); err != nil {
-		fmt.Println(err)
 	}
 
 	return newDrive(api, db, kv)
 }
 
-func resolveName(ctx context.Context, db orbitdb.OrbitDB, resolve string) (string, error) {
-	// If the input resovle is already an valid database address, return
-	// it immediately.
-	if err := address.IsValid(resolve); err == nil {
-		return resolve, nil
+// Raw creates an instance by directly accepting necessary components.
+func Raw(db iface.OrbitDB, kv iface.KeyValueStore) Instance {
+	return &drive{
+		api: db.IPFS(),
+		db:  db,
+		kv:  kv,
 	}
-
-	// If the input resolve is not a valid database address, we guess it is a
-	// valid name of an existing database. Then try validate it and fetch the
-	// database address by the name.
-	addr, err := db.DetermineAddress(ctx, resolve, keyvalueStoreType, &iface.DetermineAddressOptions{})
-	if err != nil {
-		return "", err
-	}
-	return addr.String(), nil
 }
 
 func newOrbitDB(ctx context.Context, api coreiface.CoreAPI, opts ...*options.OpenDriveOptions) (iface.OrbitDB, error) {
@@ -157,18 +132,10 @@ func newOrbitDB(ctx context.Context, api coreiface.CoreAPI, opts ...*options.Ope
 
 func openKeyValueStore(ctx context.Context, db orbitdb.OrbitDB, dbAddr string, opts ...*options.OpenDriveOptions) (iface.KeyValueStore, error) {
 	opt := options.MergeOpenDriveOptions(opts...)
-	store, err := db.Open(ctx, dbAddr, &iface.CreateDBOptions{
+	return db.KeyValue(ctx, dbAddr, &iface.CreateDBOptions{
 		Directory:        opt.Directory,
-		Overwrite:        boolPtr(false),
-		Create:           boolPtr(false),
-		StoreType:        strPtr(keyvalueStoreType),
 		AccessController: opt.AccessController,
-		Replicate:        boolPtr(true),
 	})
-	if err != nil {
-		return nil, err
-	}
-	return store.(iface.KeyValueStore), err
 }
 
 func boolPtr(flag bool) *bool {

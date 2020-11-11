@@ -50,6 +50,9 @@ func MergeOpenDriveOptions(opts ...*OpenDriveOptions) *OpenDriveOptions {
 		if opt.Logger != nil {
 			o.Logger = opt.Logger
 		}
+		if opt.AccessController != nil {
+			o.AccessController = opt.AccessController
+		}
 	}
 
 	return o
