@@ -2,16 +2,21 @@ package drive
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 
 	ipfsCore "github.com/ipfs/go-ipfs/core"
 	"github.com/ipfs/go-ipfs/core/coreapi"
 	mock "github.com/ipfs/go-ipfs/core/mock"
 	iface "github.com/ipfs/interface-go-ipfs-core"
+	"github.com/libp2p/go-libp2p-core/peer"
 	mocknet "github.com/libp2p/go-libp2p/p2p/net/mock"
+	"github.com/meowdada/ipfstor/options"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 func mockIPFSNode(ctx context.Context, t *testing.T, m mocknet.Mocknet) (*ipfsCore.IpfsNode, func()) {
@@ -52,7 +57,6 @@ func mockTempDir(t *testing.T, name string) (string, func()) {
 	return path, cleanup
 }
 
-/*
 func TestDriveReplicate(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -101,10 +105,10 @@ func TestDriveReplicate(t *testing.T) {
 	t.Run("automatic replication", func(t *testing.T) {
 		defer setup(t)()
 
-		drive1, err := Open(ctx, ipfs1, "replication-test", options.OpenDrive().SetDirectory(dbPath1))
+		drive1, err := Open(ctx, ipfs1, "replication-test", options.OpenDrive().SetDirectory(dbPath1).SetCreate(true))
 		require.NoError(t, err)
 
-		drive2, err := Open(ctx, ipfs2, drive1.Address(), options.OpenDrive().SetDirectory(dbPath2))
+		drive2, err := Open(ctx, ipfs2, drive1.Address(), options.OpenDrive().SetDirectory(dbPath2).SetCreate(true))
 		require.NoError(t, err)
 
 		_, err = drive1.Add(ctx, "123", "/home/jack/Desktop/data/file1.tmp")
@@ -119,4 +123,3 @@ func TestDriveReplicate(t *testing.T) {
 		fmt.Println(r.Files())
 	})
 }
-*/

@@ -10,6 +10,7 @@ type OpenDriveOptions struct {
 	Directory        *string
 	Logger           *zap.Logger
 	AccessController accesscontroller.ManifestParams
+	Create           *bool
 }
 
 // SetDirectory sets the Directory field of the OpenDriveOptions.
@@ -27,6 +28,12 @@ func (o *OpenDriveOptions) SetLogger(logger *zap.Logger) *OpenDriveOptions {
 // SetAccessController sets the AccessController field of the OpenDriveOptions.
 func (o *OpenDriveOptions) SetAccessController(controller accesscontroller.ManifestParams) *OpenDriveOptions {
 	o.AccessController = controller
+	return o
+}
+
+// SetCreate sets the Create field of the OpenDriveOptions.
+func (o *OpenDriveOptions) SetCreate(flag bool) *OpenDriveOptions {
+	o.Create = &flag
 	return o
 }
 
@@ -52,6 +59,9 @@ func MergeOpenDriveOptions(opts ...*OpenDriveOptions) *OpenDriveOptions {
 		}
 		if opt.AccessController != nil {
 			o.AccessController = opt.AccessController
+		}
+		if opt.Create != nil {
+			o.Create = opt.Create
 		}
 	}
 

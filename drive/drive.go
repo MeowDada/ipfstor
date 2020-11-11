@@ -110,6 +110,9 @@ func Open(ctx context.Context, api coreiface.CoreAPI, resolve string, opts ...*o
 		return nil, err
 	}
 
+	_ = kv.LoadFromSnapshot(ctx)
+	_ = kv.Load(ctx, -1)
+
 	return newDrive(api, db, kv)
 }
 
@@ -132,10 +135,19 @@ func newOrbitDB(ctx context.Context, api coreiface.CoreAPI, opts ...*options.Ope
 
 func openKeyValueStore(ctx context.Context, db orbitdb.OrbitDB, dbAddr string, opts ...*options.OpenDriveOptions) (iface.KeyValueStore, error) {
 	opt := options.MergeOpenDriveOptions(opts...)
-	return db.KeyValue(ctx, dbAddr, &iface.CreateDBOptions{
+	store, err := db.Open(ctx, dbAddr, &iface.CreateDBOptions{
 		Directory:        opt.Directory,
+		Overwrite:        boolPtr(false),
+		LocalOnly:        boolPtr(false),
+		Create:           opt.Create,
+		StoreType:        strPtr(keyvalueStoreType),
 		AccessController: opt.AccessController,
+		Replicate:        boolPtr(true),
 	})
+	if err != nil {
+		return nil, err
+	}
+	return store.(baseorbitdb.KeyValueStore), nil
 }
 
 func boolPtr(flag bool) *bool {
