@@ -2,6 +2,7 @@ package drive
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	orbitdb "berty.tech/go-orbit-db"
@@ -120,6 +121,11 @@ func Open(ctx context.Context, api coreiface.CoreAPI, resolve string, opts ...*o
 	// Try loading snapshot from the specific directory. Do nothing if
 	// there is no snapshot.
 	kv.LoadFromSnapshot(ctx)
+
+	//
+	if err := kv.Load(ctx, -1); err != nil {
+		fmt.Println(err)
+	}
 
 	return newDrive(api, db, kv)
 }
