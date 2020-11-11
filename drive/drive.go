@@ -35,6 +35,9 @@ type Instance interface {
 	// /orbitdb/{driveHash}/{driveName}
 	Address() string
 
+	// Identity denotes the api using by the user who controls this instance.
+	Identity() string
+
 	// Add adds a local file to the drive instance with given key.
 	Add(ctx context.Context, key, fpath string) (File, error)
 
@@ -46,6 +49,12 @@ type Instance interface {
 
 	// Remove remove the file from the drive instance.
 	Remove(ctx context.Context, key string) error
+
+	// Grant grants permission to specific user.
+	Grant(ctx context.Context, keyID, permission string) error
+
+	// Revoke revokes permission from spcific user.
+	Revoke(ctx context.Context, keyID, permission string) error
 
 	// Close closes the drive instance and save the snapshot of the drive.
 	Close(ctx context.Context) error
@@ -143,11 +152,12 @@ func newOrbitDB(ctx context.Context, api coreiface.CoreAPI, opts ...*options.Ope
 func openKeyValueStore(ctx context.Context, db orbitdb.OrbitDB, dbAddr string, opts ...*options.OpenDriveOptions) (iface.KeyValueStore, error) {
 	opt := options.MergeOpenDriveOptions(opts...)
 	store, err := db.Open(ctx, dbAddr, &iface.CreateDBOptions{
-		Directory: opt.Directory,
-		Overwrite: boolPtr(false),
-		Create:    boolPtr(false),
-		StoreType: strPtr(keyvalueStoreType),
-		Replicate: boolPtr(true),
+		Directory:        opt.Directory,
+		Overwrite:        boolPtr(false),
+		Create:           boolPtr(false),
+		StoreType:        strPtr(keyvalueStoreType),
+		AccessController: opt.AccessController,
+		Replicate:        boolPtr(true),
 	})
 	if err != nil {
 		return nil, err

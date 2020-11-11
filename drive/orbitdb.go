@@ -30,6 +30,10 @@ func (d *drive) Address() string {
 	return d.kv.Address().String()
 }
 
+func (d *drive) Identity() string {
+	return d.kv.Identity().ID
+}
+
 func (d *drive) Add(ctx context.Context, key, fpath string) (File, error) {
 	if len(fpath) == 0 || len(key) == 0 {
 		return File{}, fmt.Errorf("Either key or fpath cannot be empty string")
@@ -120,6 +124,16 @@ func (d *drive) Remove(ctx context.Context, key string) error {
 
 	_, err = d.kv.Delete(ctx, key)
 	return err
+}
+
+func (d *drive) Grant(ctx context.Context, keyID, permission string) error {
+	ac := d.kv.AccessController()
+	return ac.Grant(ctx, permission, keyID)
+}
+
+func (d *drive) Revoke(ctx context.Context, keyID, permission string) error {
+	ac := d.kv.AccessController()
+	return ac.Revoke(ctx, permission, keyID)
 }
 
 func (d *drive) Close(ctx context.Context) error {

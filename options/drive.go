@@ -1,11 +1,15 @@
 package options
 
-import "go.uber.org/zap"
+import (
+	"berty.tech/go-orbit-db/accesscontroller"
+	"go.uber.org/zap"
+)
 
 // OpenDriveOptions configures behaviour while opening a drive.
 type OpenDriveOptions struct {
-	Directory *string
-	Logger    *zap.Logger
+	Directory        *string
+	Logger           *zap.Logger
+	AccessController accesscontroller.ManifestParams
 }
 
 // SetDirectory sets the Directory field of the OpenDriveOptions.
@@ -17,6 +21,12 @@ func (o *OpenDriveOptions) SetDirectory(dir string) *OpenDriveOptions {
 // SetLogger sets the Logger field of the OpenDriveOptions.
 func (o *OpenDriveOptions) SetLogger(logger *zap.Logger) *OpenDriveOptions {
 	o.Logger = logger
+	return o
+}
+
+// SetAccessController sets the AccessController field of the OpenDriveOptions.
+func (o *OpenDriveOptions) SetAccessController(controller accesscontroller.ManifestParams) *OpenDriveOptions {
+	o.AccessController = controller
 	return o
 }
 
