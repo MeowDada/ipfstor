@@ -13,8 +13,13 @@ type OpenDriveOptions struct {
 	Create           *bool
 }
 
-// SetDirectory sets the Directory field of the OpenDriveOptions.
+// SetDirectory sets the Directory field of the OpenDriveOptions. If the input value
+// is zero-length, the field will be set to nil.
 func (o *OpenDriveOptions) SetDirectory(dir string) *OpenDriveOptions {
+	if len(dir) == 0 {
+		o.Directory = nil
+		return o
+	}
 	o.Directory = &dir
 	return o
 }
