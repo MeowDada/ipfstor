@@ -88,10 +88,10 @@ func (lr *ListResult) WriteTo(w io.Writer) (int64, error) {
 	})
 
 	var ret string
-	banner := "|" + strings.Repeat("-", maxLen) + "|" + strings.Repeat("-", 59) + "|" + strings.Repeat("-", 12) + "|" + "\n"
+	banner := "|" + strings.Repeat("-", maxLen) + "|" + strings.Repeat("-", 46) + "|" + strings.Repeat("-", 12) + "|" + "\n"
 
 	for i := range files {
-		format := "|%-" + strconv.Itoa(maxLen) + "s|%59s|%-12s|"
+		format := "|%-" + strconv.Itoa(maxLen) + "s|%-46s|%-12s|"
 		line := fmt.Sprintf(format, files[i].Key, files[i].Cid, humanize.IBytes(uint64(files[i].Size)))
 		ret += line + "\n"
 	}
