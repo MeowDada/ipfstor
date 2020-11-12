@@ -1,12 +1,18 @@
 package drive
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"io"
+	"sort"
+	"strconv"
+	"strings"
 
 	orbitdb "berty.tech/go-orbit-db"
 	"berty.tech/go-orbit-db/baseorbitdb"
 	"berty.tech/go-orbit-db/iface"
+	"github.com/dustin/go-humanize"
 	"github.com/ipfs/go-cid"
 	coreiface "github.com/ipfs/interface-go-ipfs-core"
 	"github.com/meowdada/ipfstor/ipfsutil"
@@ -62,6 +68,37 @@ type Instance interface {
 // ListResult denote a data structure contains result of list operation.
 type ListResult struct {
 	files []File
+}
+
+// WriteTo implements io.WriterTo interface. It writes formated strings
+// about the ListResult.
+func (lr *ListResult) WriteTo(w io.Writer) (int64, error) {
+	files := lr.files
+
+	maxLen := 0
+
+	sort.Slice(files, func(i, j int) bool {
+		if len(files[i].Key) > maxLen {
+			maxLen = len(files[i].Key)
+		}
+		if len(files[j].Key) > maxLen {
+			maxLen = len(files[j].Key)
+		}
+		return files[i].Key < files[j].Key
+	})
+
+	var ret string
+	banner := "|" + strings.Repeat("-", maxLen) + "|" + strings.Repeat("-", 59) + "|" + strings.Repeat("-", 12) + "|" + "\n"
+
+	for i := range files {
+		format := "|%-" + strconv.Itoa(maxLen) + "s|%59s|%-12s|"
+		line := fmt.Sprintf(format, files[i].Key, files[i].Cid, humanize.IBytes(uint64(files[i].Size)))
+		ret += line + "\n"
+	}
+
+	final := banner + ret + banner
+
+	return io.Copy(w, bytes.NewBuffer([]byte(final)))
 }
 
 // Files returns all list results.

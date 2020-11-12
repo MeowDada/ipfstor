@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ipfs/go-cid"
 	ipfsCore "github.com/ipfs/go-ipfs/core"
 	"github.com/ipfs/go-ipfs/core/coreapi"
 	mock "github.com/ipfs/go-ipfs/core/mock"
@@ -122,4 +123,20 @@ func TestDriveReplicate(t *testing.T) {
 
 		fmt.Println(r.Files())
 	})
+}
+
+func TestListResultWriteTo(t *testing.T) {
+	lr := ListResult{
+		files: []File{
+			{"hello-world", cid.Cid{}, 1024},
+			{"abs", cid.Cid{}, 1048579},
+			{"hello-world123", cid.Cid{}, 54121561},
+			{"mamaytata", cid.Cid{}, 123},
+		},
+	}
+
+	_, err := lr.WriteTo(os.Stdout)
+	if err != nil {
+		t.Fatal(err)
+	}
 }
