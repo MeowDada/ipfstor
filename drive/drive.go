@@ -78,14 +78,14 @@ func (lr *ListResult) WriteTo(w io.Writer) (int64, error) {
 	maxLen := 0
 
 	sort.Slice(files, func(i, j int) bool {
+		return files[i].Key < files[j].Key
+	})
+
+	for i := range files {
 		if len(files[i].Key) > maxLen {
 			maxLen = len(files[i].Key)
 		}
-		if len(files[j].Key) > maxLen {
-			maxLen = len(files[j].Key)
-		}
-		return files[i].Key < files[j].Key
-	})
+	}
 
 	var ret string
 	banner := "|" + strings.Repeat("-", maxLen) + "|" + strings.Repeat("-", 46) + "|" + strings.Repeat("-", 12) + "|" + "\n"
