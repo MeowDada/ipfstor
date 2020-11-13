@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	orbitdb "berty.tech/go-orbit-db"
 	"berty.tech/go-orbit-db/baseorbitdb"
@@ -144,7 +143,7 @@ type File struct {
 	Key       string
 	Cid       cid.Cid
 	Size      int64
-	Timestamp time.Time
+	Timestamp string
 	Owner     string
 }
 

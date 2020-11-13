@@ -60,7 +60,7 @@ func (d *drive) Add(ctx context.Context, key, fpath string) (File, error) {
 		Key:       key,
 		Cid:       resolve.Cid(),
 		Size:      size,
-		Timestamp: time.Now(),
+		Timestamp: time.Now().Format(time.RFC1123),
 		Owner:     d.Identity(),
 	}
 

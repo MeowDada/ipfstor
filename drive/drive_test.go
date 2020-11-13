@@ -128,10 +128,10 @@ func TestDriveReplicate(t *testing.T) {
 func TestListResultWriteTo(t *testing.T) {
 	lr := ListResult{
 		files: []File{
-			{"hello-world", cid.Cid{}, 1024, time.Now(), "abc"},
-			{"abs", cid.Cid{}, 1048579, time.Now(), "qde"},
-			{"hello-world123", cid.Cid{}, 54121561, time.Now(), "def"},
-			{"mamaytata", cid.Cid{}, 123, time.Now(), "asbhash"},
+			{"hello-world", cid.Cid{}, 1024, time.Now().Format(time.RFC1123), "abc"},
+			{"abs", cid.Cid{}, 1048579, time.Now().Format(time.RFC1123), "qde"},
+			{"hello-world123", cid.Cid{}, 54121561, time.Now().Format(time.RFC1123), "def"},
+			{"mamaytata", cid.Cid{}, 123, time.Now().Format(time.RFC1123), "asbhash"},
 		},
 	}
 
