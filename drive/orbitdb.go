@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	"berty.tech/go-orbit-db/iface"
 	"berty.tech/go-orbit-db/stores/basestore"
@@ -56,9 +57,11 @@ func (d *drive) Add(ctx context.Context, key, fpath string) (File, error) {
 	}
 
 	f := File{
-		Key:  key,
-		Cid:  resolve.Cid(),
-		Size: size,
+		Key:       key,
+		Cid:       resolve.Cid(),
+		Size:      size,
+		Timestamp: time.Now(),
+		Owner:     d.Identity(),
 	}
 
 	data := mustEncodeGob(f)

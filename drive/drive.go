@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	orbitdb "berty.tech/go-orbit-db"
 	"berty.tech/go-orbit-db/baseorbitdb"
@@ -17,11 +18,30 @@ import (
 	coreiface "github.com/ipfs/interface-go-ipfs-core"
 	"github.com/meowdada/ipfstor/ipfsutil"
 	"github.com/meowdada/ipfstor/options"
+	"github.com/meowdada/ipfstor/pkg/format"
 	"github.com/pkg/errors"
 )
 
 const (
 	keyvalueStoreType = "keyvalue"
+
+	// ListMask is a bitmask to determine which value to be printed out.
+	ListMask uint32 = 31
+
+	// ListMaskKey is a bitmask to enable listing Key fields.
+	ListMaskKey uint32 = 1
+
+	// ListMaskCid is a bitmask to enable listing Cid fields.
+	ListMaskCid uint32 = 2
+
+	// ListMaskSize is a bitmask to enable listing Size fields.
+	ListMaskSize uint32 = 4
+
+	// ListMaskTime is a bitmask to enable listing Time fields.
+	ListMaskTime uint32 = 8
+
+	// ListMaskOwner is a bitmask to enable listing Owner fields.
+	ListMaskOwner uint32 = 16
 )
 
 var (
@@ -101,6 +121,19 @@ func (lr *ListResult) WriteTo(w io.Writer) (int64, error) {
 	return io.Copy(w, bytes.NewBuffer([]byte(final)))
 }
 
+// Bytes marshals the result into bytes.
+func (lr *ListResult) Bytes(mask uint32) []byte {
+	files := lr.files
+	rows := make([]format.Row, len(files))
+
+	for i := range files {
+		rows[i] = files[i].row(mask)
+	}
+
+	tmpl := format.Basic{}
+	return tmpl.Render(rows, format.Options{Sort: true})
+}
+
 // Files returns all list results.
 func (lr *ListResult) Files() []File {
 	return lr.files
@@ -108,9 +141,37 @@ func (lr *ListResult) Files() []File {
 
 // File denotes the metadata of a file which is stored in a drive instance.
 type File struct {
-	Key  string
-	Cid  cid.Cid
-	Size int64
+	Key       string
+	Cid       cid.Cid
+	Size      int64
+	Timestamp time.Time
+	Owner     string
+}
+
+func (f *File) row(mask uint32) format.Row {
+	m := mask & ListMask
+	if m == 0 {
+		m = ListMask
+	}
+
+	cols := []format.Col{}
+	if m&ListMaskKey == ListMaskKey {
+		cols = append(cols, format.Col{Key: "Key", Value: f.Key})
+	}
+	if m&ListMaskCid != 0 {
+		cols = append(cols, format.Col{Key: "Cid", Value: f.Cid})
+	}
+	if m&ListMaskSize != 0 {
+		cols = append(cols, format.Col{Key: "Size", Value: f.Size})
+	}
+	if m&ListMaskTime != 0 {
+		cols = append(cols, format.Col{Key: "Timestamp", Value: f.Timestamp})
+	}
+	if m&ListMaskOwner != 0 {
+		cols = append(cols, format.Col{Key: "Owner", Value: f.Owner})
+	}
+
+	return format.Row(cols)
 }
 
 // DirectOpen is similar to Open, but it simplifies the input arguements and always use
