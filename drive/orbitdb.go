@@ -35,7 +35,7 @@ func (d *drive) Identity() string {
 	return d.kv.Identity().ID
 }
 
-func (d *drive) Add(ctx context.Context, key, fpath string) (File, error) {
+func (d *drive) AddFile(ctx context.Context, key, fpath string) (File, error) {
 	if len(fpath) == 0 || len(key) == 0 {
 		return File{}, fmt.Errorf("Either key or fpath cannot be empty string")
 	}
@@ -52,6 +52,45 @@ func (d *drive) Add(ctx context.Context, key, fpath string) (File, error) {
 
 	unixfs := d.api.Unixfs()
 	resolve, err := unixfs.Add(ctx, node)
+	if err != nil {
+		return File{}, err
+	}
+
+	f := File{
+		Key:       key,
+		Cid:       resolve.Cid(),
+		Size:      size,
+		Timestamp: time.Now().Format(time.RFC1123),
+		Owner:     d.Identity(),
+	}
+
+	data := mustEncodeGob(f)
+
+	_, err = d.kv.Put(ctx, key, data)
+	if err != nil {
+		return File{}, err
+	}
+
+	return f, nil
+}
+
+func (d *drive) Add(ctx context.Context, key string, r io.Reader) (File, error) {
+	if len(key) == 0 {
+		return File{}, fmt.Errorf("cannot use empty key")
+	}
+	if r == nil {
+		return File{}, fmt.Errorf("input stream is a nil pointer")
+	}
+
+	node := newFile(key, r)
+
+	unixfs := d.api.Unixfs()
+	resolve, err := unixfs.Add(ctx, node)
+	if err != nil {
+		return File{}, err
+	}
+
+	size, err := node.Size()
 	if err != nil {
 		return File{}, err
 	}

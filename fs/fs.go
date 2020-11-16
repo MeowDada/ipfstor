@@ -23,7 +23,8 @@ func Mount(mountpoint string, drive drive.Instance) (unmountFn func(), err error
 	defer c.Close()
 
 	if err := fs.Serve(c, &FS{
-		core: drive,
+		mountpoint: mountpoint,
+		core:       drive,
 	}); err != nil {
 		return nil, err
 	}
@@ -37,7 +38,8 @@ func Mount(mountpoint string, drive drive.Instance) (unmountFn func(), err error
 
 // FS denotes a file system instance backed by a existing drive.
 type FS struct {
-	core drive.Instance
+	mountpoint string
+	core       drive.Instance
 }
 
 // Root implements fs.FS interface.
@@ -53,4 +55,6 @@ func (fs *FS) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.St
 }
 
 // Destroy implements fs.FSDestroyer interface.
-func (fs *FS) Destroy() {}
+func (fs *FS) Destroy() {
+	fmt.Println("FS instance has been removed successfully")
+}

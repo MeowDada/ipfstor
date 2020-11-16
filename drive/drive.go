@@ -62,8 +62,11 @@ type Instance interface {
 	// Identity denotes the api using by the user who controls this instance.
 	Identity() string
 
-	// Add adds a local file to the drive instance with given key.
-	Add(ctx context.Context, key, fpath string) (File, error)
+	// AddFile adds a local file to the drive instance with given key.
+	AddFile(ctx context.Context, key, fpath string) (File, error)
+
+	// Add adds a file with given key and a stream reader.
+	Add(ctx context.Context, key string, r io.Reader) (File, error)
 
 	// Get gets a file with given key from the drive instance.
 	Get(ctx context.Context, key string) (io.ReadCloser, error)

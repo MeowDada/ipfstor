@@ -23,16 +23,11 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
 
 // Lookup implements fs.NodeStringLookuper interface.
 func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
-	if name == "." {
-		return d, nil
-	}
-
 	drive := d.fs.core
 	f, err := drive.Stat(ctx, name)
 	if err != nil {
 		return nil, syscall.ENOENT
 	}
-
 	return &File{File: f, fs: d.fs}, nil
 }
 
@@ -53,4 +48,9 @@ func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	}
 
 	return dirs, nil
+}
+
+// Getxattr implements fs.NodeGetxattrer interface.
+func (d *Dir) Getxattr(ctx context.Context, req *fuse.GetxattrRequest, resp *fuse.GetxattrResponse) error {
+	return fuse.ErrNoXattr
 }
