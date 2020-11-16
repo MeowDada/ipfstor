@@ -95,6 +95,15 @@ func (d *drive) Get(ctx context.Context, key string) (io.ReadCloser, error) {
 	return files.ToFile(node), nil
 }
 
+func (d *drive) Stat(ctx context.Context, key string) (File, error) {
+	data, err := d.kv.Get(ctx, key)
+	if err != nil {
+		return File{}, err
+	}
+	f := mustDecodeGob(data)
+	return f, nil
+}
+
 func (d *drive) List(ctx context.Context, prefix string) (ListResult, error) {
 	vals := d.kv.All()
 

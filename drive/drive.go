@@ -68,6 +68,9 @@ type Instance interface {
 	// Get gets a file with given key from the drive instance.
 	Get(ctx context.Context, key string) (io.ReadCloser, error)
 
+	// Stat stats a file with given key from the drive.
+	Stat(ctx context.Context, key string) (File, error)
+
 	// List lists all existing files which matches given prefix.
 	List(ctx context.Context, prefix string) (ListResult, error)
 

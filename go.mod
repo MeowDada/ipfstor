@@ -3,6 +3,7 @@ module github.com/meowdada/ipfstor
 go 1.15
 
 require (
+	bazil.org/fuse v0.0.0-20200117225306-7b5117fecadc
 	berty.tech/go-orbit-db v1.10.10
 	github.com/dustin/go-humanize v1.0.0
 	github.com/ipfs/go-cid v0.0.7
