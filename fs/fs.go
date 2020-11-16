@@ -2,6 +2,8 @@ package fs
 
 import (
 	"context"
+	"fmt"
+	"syscall"
 
 	"bazil.org/fuse"
 	fs "bazil.org/fuse/fs"
@@ -9,20 +11,28 @@ import (
 )
 
 // Mount mounts the filesystem to specific path.
-func Mount(mountpoint string, drive drive.Instance) error {
+func Mount(mountpoint string, drive drive.Instance) (unmountFn func(), err error) {
 	c, err := fuse.Mount(
 		mountpoint,
 		fuse.FSName("QNAP-ipfs"),
 		fuse.Subtype("qpfs"),
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer c.Close()
 
-	return fs.Serve(c, &FS{
+	if err := fs.Serve(c, &FS{
 		core: drive,
-	})
+	}); err != nil {
+		return nil, err
+	}
+
+	return func() {
+		if err := syscall.Unmount(mountpoint, 0); err != nil {
+			fmt.Println(err)
+		}
+	}, nil
 }
 
 // FS denotes a file system instance backed by a existing drive.
