@@ -32,7 +32,9 @@ type FS struct {
 
 // Root implements fs.FS interface.
 func (fs *FS) Root() (fs.Node, error) {
-	return &Dir{}, nil
+	return &Dir{
+		fs: fs,
+	}, nil
 }
 
 // Statfs implements fs.FSStatfser interface.
