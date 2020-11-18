@@ -2,55 +2,55 @@ package fs
 
 import (
 	"context"
+	"log"
 	"os"
-	"syscall"
 
 	"bazil.org/fuse"
-	fs "bazil.org/fuse/fs"
+	"bazil.org/fuse/fs"
+	"github.com/meowdada/ipfstor/drive"
 )
 
 // Dir denotes a directory in this filesystem.
 type Dir struct {
-	fs *FS
+	core drive.Instance
 }
 
 // Attr implements fs.Node interface.
 func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) error {
+	log.Println("dir.Attr")
 	a.Inode = 1
-	a.Mode = os.ModeDir | 0o555
+	a.Mode = os.ModeDir | 0755
 	return nil
 }
 
-// Lookup implements fs.NodeStringLookuper interface.
+// Lookup implements fs.NodeLookuper interface.
 func (d *Dir) Lookup(ctx context.Context, name string) (fs.Node, error) {
-	drive := d.fs.core
-	f, err := drive.Stat(ctx, name)
+	log.Println("dir.Lookup")
+	info, err := d.core.Stat(ctx, name)
 	if err != nil {
-		return nil, syscall.ENOENT
+		return &notExistFile{
+			core: d.core,
+			key:  name,
+		}, nil
 	}
-	return &File{File: f, fs: d.fs}, nil
+	return &existingFile{info: info}, nil
 }
 
 // ReadDirAll implements fs.HandleReadDirAller interface.
 func (d *Dir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
-	lr, err := d.fs.core.List(ctx, "")
+	log.Println("dir.ReadDirAll")
+	lr, err := d.core.List(ctx, "")
 	if err != nil {
-		return nil, err
+		log.Println(err)
+		return nil, nil
 	}
 
 	var dirs []fuse.Dirent
-	for _, f := range lr.Files() {
+	for _, r := range lr.Files() {
 		dirs = append(dirs, fuse.Dirent{
-			Inode: 0,
-			Type:  fuse.DT_File,
-			Name:  f.Key,
+			Type: fuse.DT_File,
+			Name: r.Key,
 		})
 	}
-
 	return dirs, nil
-}
-
-// Getxattr implements fs.NodeGetxattrer interface.
-func (d *Dir) Getxattr(ctx context.Context, req *fuse.GetxattrRequest, resp *fuse.GetxattrResponse) error {
-	return fuse.ErrNoXattr
 }

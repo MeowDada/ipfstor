@@ -45,7 +45,10 @@ const (
 
 var (
 	// ErrNoSuchKey denotes an error that indicates no such key presents.
-	ErrNoSuchKey = "no such key"
+	ErrNoSuchKey = errors.New("no such key")
+
+	// ErrEmptyKey denotes an error that indicates using empty key as input argument.
+	ErrEmptyKey = errors.New("empty key is not acceptable")
 )
 
 // Instance denotes a drive instance.

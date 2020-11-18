@@ -51,7 +51,10 @@ func (d *drive) AddFile(ctx context.Context, key, fpath string) (File, error) {
 	}
 
 	unixfs := d.api.Unixfs()
-	resolve, err := unixfs.Add(ctx, node)
+	unixfsOpts := options.Unixfs.
+		Pin(true)
+
+	resolve, err := unixfs.Add(ctx, node, unixfsOpts)
 	if err != nil {
 		return File{}, err
 	}
@@ -85,7 +88,10 @@ func (d *drive) Add(ctx context.Context, key string, r io.Reader) (File, error) 
 	node := newFile(key, r)
 
 	unixfs := d.api.Unixfs()
-	resolve, err := unixfs.Add(ctx, node)
+	unixfsOpts := options.Unixfs.
+		Pin(true)
+
+	resolve, err := unixfs.Add(ctx, node, unixfsOpts)
 	if err != nil {
 		return File{}, err
 	}
@@ -135,12 +141,19 @@ func (d *drive) Get(ctx context.Context, key string) (io.ReadCloser, error) {
 }
 
 func (d *drive) Stat(ctx context.Context, key string) (File, error) {
+	if len(key) == 0 {
+		return File{}, ErrEmptyKey
+	}
+
 	data, err := d.kv.Get(ctx, key)
 	if err != nil {
 		return File{}, err
 	}
-	f := mustDecodeGob(data)
-	return f, nil
+	if data == nil {
+		return File{}, ErrNoSuchKey
+	}
+
+	return decodeGob(data)
 }
 
 func (d *drive) List(ctx context.Context, prefix string) (ListResult, error) {
@@ -238,4 +251,10 @@ func mustDecodeGob(data []byte) (f File) {
 	decoder := codec.Gob{}
 	decoder.Unmarshal(data, &f)
 	return f
+}
+
+func decodeGob(data []byte) (f File, err error) {
+	decoder := codec.Gob{}
+	err = decoder.Unmarshal(data, &f)
+	return f, err
 }

@@ -414,7 +414,39 @@ func TestDriveGet(t *testing.T) {
 }
 
 func TestDriveStat(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
+	var (
+		ipfs iface.CoreAPI
+	)
+
+	setup := func(t *testing.T) func() {
+		_, dbPathClean := mockTempDir(t, "db")
+		net := mockNet(ctx)
+		node, nodeClean := mockIPFSNode(ctx, t, net)
+		ipfs = mockAPI(t, node)
+
+		cleanup := func() {
+			nodeClean()
+			dbPathClean()
+		}
+		return cleanup
+	}
+
+	t.Run("Stat unexisting file", func(t *testing.T) {
+		defer setup(t)()
+
+		opts := options.OpenDrive().SetCreate(true)
+
+		d, err := Open(ctx, ipfs, mockDriveName, opts)
+		require.NoError(t, err)
+		defer d.Close(ctx)
+
+		key := "tsmc"
+		_, err = d.Stat(ctx, key)
+		require.NotNil(t, err)
+	})
 }
 
 func TestDriveList(t *testing.T) {

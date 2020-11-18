@@ -3,7 +3,9 @@ package fs
 import (
 	"context"
 	"fmt"
-	"syscall"
+	"os"
+	"os/signal"
+	"sync"
 
 	"bazil.org/fuse"
 	fs "bazil.org/fuse/fs"
@@ -11,29 +13,52 @@ import (
 )
 
 // Mount mounts the filesystem to specific path.
-func Mount(mountpoint string, drive drive.Instance) (unmountFn func(), err error) {
-	c, err := fuse.Mount(
+func Mount(mountpoint string, drive drive.Instance) (func(), error) {
+	conn, err := fuse.Mount(
 		mountpoint,
 		fuse.FSName("QNAP-ipfs"),
 		fuse.Subtype("qpfs"),
+		fuse.AllowOther(),
 	)
 	if err != nil {
 		return nil, err
 	}
-	defer c.Close()
+	defer conn.Close()
 
-	if err := fs.Serve(c, &FS{
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	ch := make(chan os.Signal)
+	signal.Notify(ch, os.Interrupt, os.Kill)
+
+	var once sync.Once
+	unmount := func() {
+		once.Do(func() {
+			if err := fuse.Unmount(mountpoint); err != nil {
+				fmt.Println(err)
+			}
+		})
+	}
+
+	// Monitor routine to handle interrupt signal.
+	go func() {
+		select {
+		case <-ctx.Done():
+			return
+		case sig := <-ch:
+			fmt.Println("reciving signal:", sig)
+			unmount()
+		}
+	}()
+
+	if err := fs.Serve(conn, &FS{
 		mountpoint: mountpoint,
 		core:       drive,
 	}); err != nil {
 		return nil, err
 	}
 
-	return func() {
-		if err := syscall.Unmount(mountpoint, 0); err != nil {
-			fmt.Println(err)
-		}
-	}, nil
+	return unmount, nil
 }
 
 // FS denotes a file system instance backed by a existing drive.
@@ -44,17 +69,5 @@ type FS struct {
 
 // Root implements fs.FS interface.
 func (fs *FS) Root() (fs.Node, error) {
-	return &Dir{
-		fs: fs,
-	}, nil
-}
-
-// Statfs implements fs.FSStatfser interface.
-func (fs *FS) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.StatfsResponse) error {
-	return nil
-}
-
-// Destroy implements fs.FSDestroyer interface.
-func (fs *FS) Destroy() {
-	fmt.Println("FS instance has been removed successfully")
+	return &Dir{core: fs.core}, nil
 }
