@@ -182,8 +182,15 @@ func (d *drive) Remove(ctx context.Context, key string) error {
 
 	pin := d.api.Pin()
 
-	if err := pin.Rm(ctx, path.IpfsPath(f.Cid), options.Pin.RmRecursive(true)); err != nil {
+	_, ok, err := pin.IsPinned(ctx, path.IpfsPath(f.Cid))
+	if err != nil {
 		return err
+	}
+
+	if ok {
+		if err := pin.Rm(ctx, path.IpfsPath(f.Cid), options.Pin.RmRecursive(true)); err != nil {
+			return err
+		}
 	}
 
 	_, err = d.kv.Delete(ctx, key)
