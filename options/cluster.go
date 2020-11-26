@@ -29,6 +29,9 @@ func (o *ClusterOption) SetIdentityPath(path string) *ClusterOption {
 
 // SetSourceURL sets the source url of this option.
 func (o *ClusterOption) SetSourceURL(url string) *ClusterOption {
+	if len(url) == 0 {
+		return o
+	}
 	o.SrcURL = &url
 	return o
 }
