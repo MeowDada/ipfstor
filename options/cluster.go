@@ -41,6 +41,9 @@ func (o *ClusterOption) SetPeerAddr(addrs ...string) *ClusterOption {
 
 // SetSecret sets the secret key of the cluster option.
 func (o *ClusterOption) SetSecret(secret string) *ClusterOption {
+	if len(secret) == 0 {
+		return o
+	}
 	o.Secret = strPtr(secret)
 	return o
 }
