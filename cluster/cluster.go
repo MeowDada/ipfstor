@@ -39,7 +39,7 @@ import (
 const (
 	clusterConsensus = "crdt"
 
-	ipfsClusterRootDirName = "ipfs-cluster"
+	ipfsClusterRootDirName = ".ipfs-cluster"
 
 	defaultConfigName   = "service.json"
 	defaultIdentityName = "identity.json"
