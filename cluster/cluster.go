@@ -94,6 +94,32 @@ func (cls Cluster) Bootstrap(ctx context.Context, peerAddrs []string) error {
 	return nil
 }
 
+// Run hosts the cluster peer in a blocking way.
+func (cls Cluster) Run(ctx context.Context, peerAddrs []string) error {
+	var (
+		cluster = cls.Cluster
+		host    = cls.host
+		dht     = cls.dht
+		store   = cls.store
+	)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	var bootstraps []ma.Multiaddr
+	for i := range peerAddrs {
+		multiAddr, err := ma.NewMultiaddr(peerAddrs[i])
+		if err != nil {
+			return err
+		}
+		bootstraps = append(bootstraps, multiAddr)
+	}
+
+	go bootstrap(ctx, cluster, bootstraps)
+
+	return cmdutils.HandleSignals(ctx, cancel, cluster, host, dht, store)
+}
+
 // Start the cluster.
 func (cls Cluster) Start() {
 	go cls.start()
